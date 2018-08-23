@@ -378,7 +378,7 @@ handle_info({timeout, _Tref, {permission_timeout, Addr}},
 						false;
 					error ->
 						true
-				end;
+				end
 			end,Channels),
 	    {next_state, StateName, State#state{permissions = Perms, channels = Chans}};
 	error ->
