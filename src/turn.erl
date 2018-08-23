@@ -324,7 +324,7 @@ handle_event(Event, StateName, State) ->
 handle_sync_event(_Event, _From, StateName, State) ->
     {reply, {error, badarg}, StateName, State}.
 
-check_channels(Channels,AddrPort) ->
+check_channels(Channels,AddrPort,State) ->
 	Found = lists:filter(fun(Channel) ->
 			case ?DICT:find(Channel, State#state.channels) of
 				{ok, {AddrPort_, _}} -> true;
@@ -336,17 +336,17 @@ check_channels(Channels,AddrPort) ->
 		false -> 0
 	end.
 
-find_channel(Addr, Port) ->
+find_channel(Addr, Port,State) ->
 	AddrPort = {Addr, Port},
 	case ?DICT:find(Addr, State#state.permissions) of
 		{ok, {Channels, _}} ->
-			1;
+			check_channels(Channels,AddrPort,State);
 		error -> 0
 	end.
 
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
-	Channel = find_channel(Addr, Port),
+	Channel = find_channel(Addr, Port, State),
     case Channel>0 of
 		true -> 
 			error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
