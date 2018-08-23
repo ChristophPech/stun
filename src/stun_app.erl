@@ -49,6 +49,7 @@
 %% @end
 %%--------------------------------------------------------------------
 start(_StartType, _StartArgs) ->
+    error_logger:error_msg("bbbbbbbbbbbbbb"),
     application:start(fast_tls),
     case stun_sup:start_link() of
         {ok, Pid} ->
