@@ -326,9 +326,10 @@ handle_sync_event(_Event, _From, StateName, State) ->
 
 check_channels(Channels,AddrPort) ->
 	lists:all(fun(Channel) ->
-		case ?DICT:find(Channel, State#state.channels) of
-			{ok, {AddrPort_, _}} -> true;
-			false -> false
+			case ?DICT:find(Channel, State#state.channels) of
+				{ok, {AddrPort_, _}} -> true;
+				false -> false
+			end
 		end, Channels);
 
 find_channel(Addr, Port) ->
