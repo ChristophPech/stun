@@ -220,7 +220,7 @@ active(#stun{class = request,
 			      TRef = erlang:start_timer(
 				       ?PERMISSION_LIFETIME, self(),
 				       {permission_timeout, Addr}),
-			      ?dbg("created/updated TURN permission for user "
+			      ?dbg("created/updated chp TURN permission for user "
                                    "~s@~s from ~s: ~s <-> ~s",
                                    [State#state.username, State#state.realm,
                                     addr_to_str(State#state.addr),
@@ -244,7 +244,7 @@ active(#stun{class = indication,
 	{ok, _} ->
 	    gen_udp:send(State#state.relay_sock, Addr, Port, Data);
 	error ->
-		dbg("indication fail, no permission TURN permission for user "
+		error_logger:info_msg("indication fail, no permission TURN permission for user "
                                    "~s@~s from ~s: ~s <-> ~s",
                                    [State#state.username, State#state.realm,
                                     addr_to_str(State#state.addr),
