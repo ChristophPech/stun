@@ -324,6 +324,12 @@ handle_event(Event, StateName, State) ->
 handle_sync_event(_Event, _From, StateName, State) ->
     {reply, {error, badarg}, StateName, State}.
 
+check_channels(Channels,AddrPort) ->
+	case lists:all(fun(Channel) ->
+			true;
+		end, Channels) of
+	end;
+
 find_channel(Addr, Port) ->
 	AddrPort = {Addr, Port},
 	case ?DICT:find(Addr, State#state.permissions) of
