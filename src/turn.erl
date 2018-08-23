@@ -249,7 +249,7 @@ active(#stun{class = indication,
                                    [State#state.username, State#state.realm,
                                     addr_to_str(State#state.addr),
                                     addr_to_str(State#state.relay_addr),
-                                    addr_to_str({Addr, _Port})]),
+                                    addr_to_str({Addr, Port})]),
 	    ok
     end,
     {next_state, active, State};
