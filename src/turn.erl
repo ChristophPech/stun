@@ -242,6 +242,12 @@ active(#stun{class = indication,
 	     'DATA' = Data}, State) when is_binary(Data) ->
     case ?DICT:find(Addr, State#state.permissions) of
 	{ok, _} ->
+		error_logger:info_msg("indication succ, no permission TURN permission for user "
+                                   "~s@~s from ~s: ~s <-> ~s",
+                                   [State#state.username, State#state.realm,
+                                    addr_to_str(State#state.addr),
+                                    addr_to_str(State#state.relay_addr),
+                                    addr_to_str({Addr, Port})]),
 	    gen_udp:send(State#state.relay_sock, Addr, Port, Data);
 	error ->
 		error_logger:info_msg("indication fail, no permission TURN permission for user "
