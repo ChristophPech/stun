@@ -346,38 +346,21 @@ find_channel(Addr, Port) ->
 
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
-    case ?DICT:find(Addr, State#state.permissions) of
-	{ok, {Channels, _}} ->
-		case lists:all(
-			fun(Channel) ->
-				case ?DICT:find(Channel, State#state.channels) of
-					{ok, {{_Addr, _Port}, _}} ->
-						case {Addr,Port} == {_Addr,_Port} of
-							true ->
-								error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
-								TurnMsg = #turn{channel = Channel, data = Data},
-								send(State, TurnMsg),
-								true;
-							false -> false
-						end,
-						false;
-					error ->
-						true
-				end;
-			end,Channels) of
-				true ->
-					error_logger:warning_msg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
-					Seq = State#state.seq,
-					Ind = #stun{class = indication,
-						method = ?STUN_METHOD_DATA,
-						trid = Seq,
-						'XOR-PEER-ADDRESS' = [{Addr, Port}],
-						'DATA' = Data},
-					{next_state, StateName, send(State#state{seq = Seq+1}, Ind)};
-				false ->
-					{next_state, StateName, State}
-		end
-
+	Channel = find_channel(Addr, Port),
+    case Channel>0 of
+		true -> 
+			error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
+			TurnMsg = #turn{channel = Channel, data = Data},
+			{next_state, StateName, send(State, TurnMsg)};
+		false ->
+			error_logger:warning_msg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
+			Seq = State#state.seq,
+			Ind = #stun{class = indication,
+				method = ?STUN_METHOD_DATA,
+				trid = Seq,
+				'XOR-PEER-ADDRESS' = [{Addr, Port}],
+				'DATA' = Data},
+			{next_state, StateName, send(State#state{seq = Seq+1}, Ind)}
     end;
 handle_info({timeout, _Tref, stop}, _StateName, State) ->
     {stop, normal, State};
