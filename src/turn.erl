@@ -326,7 +326,7 @@ handle_sync_event(_Event, _From, StateName, State) ->
 
 check_channels(Channels,AddrPort) ->
 	case lists:all(fun(Channel) ->
-			true;
+			true
 		end, Channels) of
 	end;
 
