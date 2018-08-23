@@ -328,6 +328,7 @@ handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
     case ?DICT:find(Addr, State#state.permissions) of
 	{ok, {undefined, _}} ->
+		error_logger:warning_msg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
 	    Seq = State#state.seq,
 	    Ind = #stun{class = indication,
 			method = ?STUN_METHOD_DATA,
@@ -336,9 +337,11 @@ handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
 			'DATA' = Data},
 	    {next_state, StateName, send(State#state{seq = Seq+1}, Ind)};
 	{ok, {Channel, _}} ->
+		error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
 	    TurnMsg = #turn{channel = Channel, data = Data},
 	    {next_state, StateName, send(State, TurnMsg)};
 	error ->
+		error_logger:warning_msg("handle_info indication err, ~s",[addr_to_str({Addr, Port})]),
 	    {next_state, StateName, State}
     end;
 handle_info({timeout, _Tref, stop}, _StateName, State) ->
