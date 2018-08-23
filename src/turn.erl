@@ -334,7 +334,7 @@ check_channels(Channels,AddrPort) ->
 	case length(Found)>0 of
 		true -> lists:nth(0,Found);
 		false -> 0
-	end;
+	end.
 
 find_channel(Addr, Port) ->
 	AddrPort = {Addr, Port},
@@ -342,7 +342,7 @@ find_channel(Addr, Port) ->
 		{ok, {Channels, _}} ->
 			1;
 		error -> 0
-	end;
+	end.
 
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
