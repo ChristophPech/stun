@@ -210,12 +210,12 @@ active(#stun{class = request,
        PermLen < State#state.max_permissions ->
 	    Perms = lists:foldl(
 		      fun({Addr, _Port}, Acc) ->
-			      Channel = case ?DICT:find(Addr, Acc) of
-					    {ok, {Chan, OldTRef}} ->
+			      Channels = case ?DICT:find(Addr, Acc) of
+					    {ok, {Chans, OldTRef}} ->
 						cancel_timer(OldTRef),
-						Chan;
+						Chans;
 					    error ->
-						undefined
+						[]
 					end,
 			      TRef = erlang:start_timer(
 				       ?PERMISSION_LIFETIME, self(),
@@ -226,7 +226,7 @@ active(#stun{class = request,
                                     addr_to_str(State#state.addr),
                                     addr_to_str(State#state.relay_addr),
                                     addr_to_str({Addr, _Port})]),
-			      ?DICT:store(Addr, {Channel, TRef}, Acc)
+			      ?DICT:store(Addr, {Channels, TRef}, Acc)
 		      end, State#state.permissions, XorPeerAddrs),
 	    NewState = State#state{permissions = Perms},
 	    R = Resp#stun{class = response},
@@ -278,11 +278,11 @@ active(#stun{class = request,
 	    {next_state, active, send(NewState, R)};
 	error ->
 	    case ?DICT:find(Addr, State#state.permissions) of
-		{ok, {undefined, PermTRef}} ->
+		{ok, {Channels, PermTRef}} ->
 		    ChanTRef = erlang:start_timer(
 				 ?CHANNEL_LIFETIME, self(),
 				 {channel_timeout, Channel}),
-		    Perms = ?DICT:store(Addr, {Channel, PermTRef},
+		    Perms = ?DICT:store(Addr, {lists:append(Channels, [Channel]), PermTRef},
 					State#state.permissions),
 		    Chans = ?DICT:store(Channel, {AddrPort, ChanTRef},
 					State#state.channels),
@@ -327,22 +327,37 @@ handle_sync_event(_Event, _From, StateName, State) ->
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
     case ?DICT:find(Addr, State#state.permissions) of
-	{ok, {undefined, _}} ->
-		error_logger:warning_msg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
-	    Seq = State#state.seq,
-	    Ind = #stun{class = indication,
-			method = ?STUN_METHOD_DATA,
-			trid = Seq,
-			'XOR-PEER-ADDRESS' = [{Addr, Port}],
-			'DATA' = Data},
-	    {next_state, StateName, send(State#state{seq = Seq+1}, Ind)};
-	{ok, {Channel, _}} ->
-		error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
-	    TurnMsg = #turn{channel = Channel, data = Data},
-	    {next_state, StateName, send(State, TurnMsg)};
-	error ->
-		error_logger:warning_msg("handle_info indication err, ~s",[addr_to_str({Addr, Port})]),
-	    {next_state, StateName, State}
+	{ok, {Channels, _}} ->
+		case lists:all(
+			fun(Channel) ->
+				case ?DICT:find(Channel, State#state.channels) of
+					{ok, {{_Addr, _Port}, _}} ->
+						case {Addr,Port} == {_Addr,_Port} of
+							true ->
+								error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
+								TurnMsg = #turn{channel = Channel, data = Data},
+								send(State, TurnMsg),
+								true;
+							false -> false
+						end,
+						false;
+					error ->
+						true
+				end;
+			end,Channels) of
+				true ->
+					error_logger:warning_msg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
+					Seq = State#state.seq,
+					Ind = #stun{class = indication,
+						method = ?STUN_METHOD_DATA,
+						trid = Seq,
+						'XOR-PEER-ADDRESS' = [{Addr, Port}],
+						'DATA' = Data},
+					{next_state, StateName, send(State#state{seq = Seq+1}, Ind)};
+				false ->
+					{next_state, StateName, State}
+		end
+
     end;
 handle_info({timeout, _Tref, stop}, _StateName, State) ->
     {stop, normal, State};
@@ -350,17 +365,19 @@ handle_info({timeout, _Tref, {permission_timeout, Addr}},
 	    StateName, State) ->
     ?dbg("permission for ~s timed out", [Addr]),
     case ?DICT:find(Addr, State#state.permissions) of
-	{ok, {Channel, _}} ->
+	{ok, {Channels, _}} ->
 	    Perms = ?DICT:erase(Addr, State#state.permissions),
-	    Chans = case ?DICT:find(Channel, State#state.channels) of
-			{ok, {_, TRef}} ->
-			    cancel_timer(TRef),
-			    ?DICT:erase(Channel, State#state.channels);
-			error ->
-			    State#state.channels
-		    end,
-	    {next_state, StateName, State#state{permissions = Perms,
-						channels = Chans}};
+		Chans = lists:filter(
+			fun(Channel) ->
+				case ?DICT:find(Channel, State#state.channels) of
+					{ok, {_, TRef}} ->
+						cancel_timer(TRef),
+						false;
+					error ->
+						true
+				end;
+			end,Channels),
+	    {next_state, StateName, State#state{permissions = Perms, channels = Chans}};
 	error ->
 	    {next_state, StateName, State}
     end;
@@ -371,8 +388,8 @@ handle_info({timeout, _Tref, {channel_timeout, Channel}},
 	{ok, {{Addr, _Port}, _}} ->
 	    Chans = ?DICT:erase(Channel, State#state.channels),
 	    Perms = case ?DICT:find(Addr, State#state.permissions) of
-			{ok, {_, TRef}} ->
-			    ?DICT:store(Addr, {undefined, TRef},
+			{ok, {Channels, TRef}} ->
+			    ?DICT:store(Addr, {lists:delete(Channel,Channels), TRef},
 					State#state.permissions);
 			error ->
 			    State#state.permissions
