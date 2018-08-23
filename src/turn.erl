@@ -40,7 +40,7 @@
 
 -define(debug, true).
 -ifdef(debug).
--define(dbg(Str, Args), error_logger:info_msg(Str, Args)).
+-define(dbg(Str, Args), error_logger:warning_msg(Str, Args)).
 -else.
 -define(dbg(Str, Args), ok).
 -endif.
@@ -242,7 +242,7 @@ active(#stun{class = indication,
 	     'DATA' = Data}, State) when is_binary(Data) ->
     case ?DICT:find(Addr, State#state.permissions) of
 	{ok, _} ->
-		error_logger:info_msg("indication succ, no permission TURN permission for user "
+		error_logger:warning_msg("indication succ, no permission TURN permission for user "
                                    "~s@~s from ~s: ~s <-> ~s",
                                    [State#state.username, State#state.realm,
                                     addr_to_str(State#state.addr),
@@ -250,7 +250,7 @@ active(#stun{class = indication,
                                     addr_to_str({Addr, Port})]),
 	    gen_udp:send(State#state.relay_sock, Addr, Port, Data);
 	error ->
-		error_logger:info_msg("indication fail, no permission TURN permission for user "
+		error_logger:warning_msg("indication fail, no permission TURN permission for user "
                                    "~s@~s from ~s: ~s <-> ~s",
                                    [State#state.username, State#state.realm,
                                     addr_to_str(State#state.addr),

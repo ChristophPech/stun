@@ -90,7 +90,7 @@
 %% API
 %%====================================================================
 start({gen_tcp, Sock}, Opts) ->
-	error_logger:error_msg("aaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
+	error_logger:warning_msg("aaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
     supervisor:start_child(stun_tmp_sup, [Sock, Opts]).
 
 stop(Pid) ->
