@@ -329,7 +329,8 @@ find_channel(Addr, Port) ->
 	case ?DICT:find(Addr, State#state.permissions) of
 		{ok, {Channels, _}} ->
 			1;
-	end,0;
+		error -> 0
+	end;
 
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
