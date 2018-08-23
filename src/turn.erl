@@ -331,7 +331,7 @@ check_channels(Channels,AddrPort) ->
 				false -> false
 			end
 		end, Channels),
-	case length(Found)>0
+	case length(Found)>0 of
 		true -> lists:nth(0,Found);
 		false -> 0
 	end;
