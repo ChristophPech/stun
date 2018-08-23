@@ -472,12 +472,8 @@ format_error({error, Reason}) ->
 	    Res
     end.
 
--ifdef(debug).
 addr_to_str({Addr, Port}) ->
     [inet_parse:ntoa(Addr), $:, integer_to_list(Port)];
-addr_to_str(Addr) ->
-    inet_parse:ntoa(Addr).
--endif.
 
 cancel_timer(undefined) ->
     ok;
