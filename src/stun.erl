@@ -86,12 +86,11 @@
 	 buf = <<>>                  :: binary()}).
 
 
-error_logger:error_msg("aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-
 %%====================================================================
 %% API
 %%====================================================================
 start({gen_tcp, Sock}, Opts) ->
+	error_logger:error_msg("aaaaaaaaaaaaaaaaaaaaaaaaaaaa"),
     supervisor:start_child(stun_tmp_sup, [Sock, Opts]).
 
 stop(Pid) ->
