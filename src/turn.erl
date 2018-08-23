@@ -324,6 +324,13 @@ handle_event(Event, StateName, State) ->
 handle_sync_event(_Event, _From, StateName, State) ->
     {reply, {error, badarg}, StateName, State}.
 
+find_channel(Addr, Port) ->
+	AddrPort = {Addr, Port},
+	case ?DICT:find(Addr, State#state.permissions) of
+		{ok, {Channels, _}} ->
+			1;
+	end,0;
+
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
     case ?DICT:find(Addr, State#state.permissions) of
