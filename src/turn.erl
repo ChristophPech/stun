@@ -38,7 +38,7 @@
 
 -include("stun.hrl").
 
-%%-define(debug, true).
+-define(debug, true).
 -ifdef(debug).
 -define(dbg(Str, Args), error_logger:info_msg(Str, Args)).
 -else.

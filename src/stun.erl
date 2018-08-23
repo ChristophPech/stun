@@ -85,6 +85,9 @@
 	 server_name = ?SERVER_NAME  :: binary(),
 	 buf = <<>>                  :: binary()}).
 
+
+error_logger:error_msg("aaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+
 %%====================================================================
 %% API
 %%====================================================================
