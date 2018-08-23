@@ -325,12 +325,16 @@ handle_sync_event(_Event, _From, StateName, State) ->
     {reply, {error, badarg}, StateName, State}.
 
 check_channels(Channels,AddrPort) ->
-	lists:all(fun(Channel) ->
+	Found = lists:filter(fun(Channel) ->
 			case ?DICT:find(Channel, State#state.channels) of
 				{ok, {AddrPort_, _}} -> true;
 				false -> false
 			end
-		end, Channels);
+		end, Channels),
+	case length(Found)>0
+		true -> lists:nth(0,Found);
+		false -> 0
+	end;
 
 find_channel(Addr, Port) ->
 	AddrPort = {Addr, Port},
