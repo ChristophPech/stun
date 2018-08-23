@@ -327,8 +327,7 @@ handle_sync_event(_Event, _From, StateName, State) ->
 check_channels(Channels,AddrPort) ->
 	lists:all(fun(Channel) ->
 			true
-		end, Channels)
-	end;
+		end, Channels);
 
 find_channel(Addr, Port) ->
 	AddrPort = {Addr, Port},
