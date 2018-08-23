@@ -325,9 +325,9 @@ handle_sync_event(_Event, _From, StateName, State) ->
     {reply, {error, badarg}, StateName, State}.
 
 check_channels(Channels,AddrPort) ->
-	case lists:all(fun(Channel) ->
+	lists:all(fun(Channel) ->
 			true
-		end, Channels) of
+		end, Channels)
 	end;
 
 find_channel(Addr, Port) ->
