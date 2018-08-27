@@ -333,6 +333,7 @@ find_channel(Addr, Port,State) ->
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
 	Channel = find_channel(Addr, Port, State),
+	error_logger:warning_msg("--> ~p",Channel),
     case Channel of
 		undefined ->
 %%			?dbg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
