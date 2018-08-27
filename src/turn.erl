@@ -333,10 +333,10 @@ find_channel(Addr, Port,State) ->
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
     inet:setopts(Sock, [{active, once}]),
 	Channel = find_channel(Addr, Port, State),
-	error_logger:warning_msg("--> ~p",Channel),
+	
     case Channel of
 		undefined ->
-%%			?dbg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
+			?error_logger:warning_msg("handle_info indication ok u, ~s",[addr_to_str({Addr, Port})]),
 			Seq = State#state.seq,
 			Ind = #stun{class = indication,
 				method = ?STUN_METHOD_DATA,
@@ -345,7 +345,7 @@ handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
 				'DATA' = Data},
 			{next_state, StateName, send(State#state{seq = Seq+1}, Ind)};
 		_ -> 
-%%			?dbg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
+			?error_logger:warning_msg("handle_info indication ok c, ~s",[addr_to_str({Addr, Port})]),
 			TurnMsg = #turn{channel = Channel, data = Data},
 			{next_state, StateName, send(State, TurnMsg)}
     end;
