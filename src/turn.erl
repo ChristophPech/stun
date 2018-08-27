@@ -320,14 +320,15 @@ check_channels(Channels,AddrPort,State) ->
 				false -> false
 			end
 		end, Channels),
-	case Found of [First | _] -> First; _Other -> 0 end.
+	case Found of [First | _] -> First; _Other -> undefined end.
 
 find_channel(Addr, Port,State) ->
 	AddrPort = {Addr, Port},
 	case ?DICT:find(Addr, State#state.permissions) of
 		{ok, {Channels, _}} ->
+			error_logger:warning_msg("channels",[1]),
 			check_channels(Channels,AddrPort,State);
-		error -> undefined
+		error -> error_logger:warning_msg("nochannel",[1]),undefined
 	end.
 
 handle_info({udp, Sock, Addr, Port, Data}, StateName, State) ->
